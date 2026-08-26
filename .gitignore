@@ -1,0 +1,30 @@
+# Virtual Environments
+.venv/
+venv/
+env/
+ENV/
+
+# Python Cache & Compiled Files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# Raw and Processed Datasets (Handled by DVC)
+data/raw/*
+!data/raw/*.dvc
+!data/raw/.gitignore
+data/processed/*
+!data/processed/*.dvc
+
+# Credentials & Environment Variables
+.env
+kaggle.json
+access_token
+
+# IDE & System Files
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
