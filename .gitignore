@@ -18,6 +18,14 @@ data/raw/*
 data/processed/*
 !data/processed/*.dvc
 
+# Experiment Tracking (Week 2 - M3)
+mlruns/
+mlartifacts/
+# Model artifacts are committed so downstream milestones (Week 3 serving)
+# can load the packaged model directly after a git clone.
+# Keep the generated comparison report (committed as a deliverable)
+!reports/
+
 # Credentials & Environment Variables
 .env
 kaggle.json
