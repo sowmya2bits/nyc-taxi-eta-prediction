@@ -1,0 +1,83 @@
+# ─────────────────────────────────────────────────────────────
+# Week 2 (M3) — Model training & experiment configuration
+# Central config so every tracked run is reproducible from source.
+# ─────────────────────────────────────────────────────────────
+
+data:
+  processed_path: "data/processed/train_processed.parquet"
+  target: "log_trip_duration"        # model trains on log1p(trip_duration)
+  test_size: 0.2
+  random_state: 42
+
+mlflow:
+  experiment_name: "nyc-taxi-eta"
+  tracking_uri: "mlruns"             # local file-based tracking store
+
+# Feature groups fed into the preprocessing pipeline. Columns not listed
+# here (id, pickup_datetime, dropoff_datetime, trip_duration,
+# log_trip_duration) are intentionally excluded to avoid target leakage.
+features:
+  numeric:
+    - passenger_count
+    - pickup_longitude
+    - pickup_latitude
+    - dropoff_longitude
+    - dropoff_latitude
+    - haversine_dist
+    - manhattan_dist
+    - direction_bearing
+    - jfk_pickup_dist
+    - jfk_dropoff_dist
+    - lga_pickup_dist
+    - lga_dropoff_dist
+    - pickup_hour
+    - pickup_dayofweek
+    - pickup_month
+    - is_weekend
+    - is_rush_hour
+    - hour_sin
+    - hour_cos
+  categorical:
+    - vendor_id
+    - store_and_fwd_flag
+
+# Five tracked experiments: a linear baseline plus four tree/ensemble models.
+# The best (lowest validation RMSE) is serialized to models/final_model.pkl.
+models:
+  linear_regression:
+    # No tunable hyperparameters; scaling handled in the pipeline.
+    fit_intercept: true
+
+  random_forest:
+    n_estimators: 200
+    max_depth: null
+    min_samples_leaf: 5
+    n_jobs: -1
+    random_state: 42
+
+  gradient_boosting:
+    n_estimators: 200
+    max_depth: 3
+    learning_rate: 0.1
+    subsample: 0.8
+    random_state: 42
+
+  hist_gradient_boosting:
+    max_iter: 300
+    max_depth: null
+    learning_rate: 0.1
+    random_state: 42
+
+  xgboost:
+    n_estimators: 600
+    learning_rate: 0.05
+    max_depth: 8
+    subsample: 0.8
+    colsample_bytree: 0.8
+    min_child_weight: 5
+    reg_lambda: 1.0
+    reg_alpha: 0.0
+    objective: "reg:squarederror"
+    tree_method: "hist"
+    n_jobs: -1
+    random_state: 42
