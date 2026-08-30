@@ -7,7 +7,6 @@ from datetime import datetime
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
-
 from src.feature_engineering import engineer_features
 
 
@@ -23,7 +22,6 @@ MODEL_PATH = "models/final_model.pkl"
 # ============================================================
 
 try:
-
     model = joblib.load(MODEL_PATH)
 
     print(
@@ -31,7 +29,6 @@ try:
     )
 
 except Exception as exc:
-
     raise RuntimeError(
         f"[API] Failed to load model: {exc}"
     )
@@ -61,12 +58,12 @@ class PredictionRequest(BaseModel):
     # Date / Time
     # --------------------------------------------------------
 
-    pickup_datetime: str = Field(
+    pickup_datetime: datetime = Field(
         ...,
         description=(
-            "Pickup date and time. "
-            "Example: 2016-06-01T08:30:00"
-        )
+            "Pickup date and time in YYYY-MM-DDTHH:MM:SS format."
+        ),
+        examples=["2016-06-01T08:30:00"]
     )
 
     # --------------------------------------------------------
@@ -75,12 +72,14 @@ class PredictionRequest(BaseModel):
 
     pickup_longitude: float = Field(
         ...,
-        description="Pickup longitude"
+        description="Pickup longitude",
+        examples=[-73.9857]
     )
 
     pickup_latitude: float = Field(
         ...,
-        description="Pickup latitude"
+        description="Pickup latitude",
+        examples=[40.7484]
     )
 
     # --------------------------------------------------------
@@ -89,12 +88,14 @@ class PredictionRequest(BaseModel):
 
     dropoff_longitude: float = Field(
         ...,
-        description="Dropoff longitude"
+        description="Dropoff longitude",
+        examples=[-73.9851]
     )
 
     dropoff_latitude: float = Field(
         ...,
-        description="Dropoff latitude"
+        description="Dropoff latitude",
+        examples=[40.7580]
     )
 
     # --------------------------------------------------------
@@ -105,24 +106,24 @@ class PredictionRequest(BaseModel):
         default=1,
         ge=1,
         le=6,
-        description="Number of passengers"
+        description="Number of passengers",
+        examples=[2]
     )
 
     # --------------------------------------------------------
     # Taxi Information
-    #
-    # These are REQUIRED because your trained model expects
-    # these categorical features.
     # --------------------------------------------------------
 
     vendor_id: int = Field(
         default=1,
-        description="Taxi vendor ID"
+        description="Taxi vendor ID",
+        examples=[1]
     )
 
     store_and_fwd_flag: str = Field(
         default="N",
-        description="Store and forward flag: Y or N"
+        description="Store and forward flag: Y or N",
+        examples=["N"]
     )
 
 
@@ -194,25 +195,13 @@ def predict(request: PredictionRequest):
     try:
 
         # ====================================================
-        # 1. VALIDATE DATETIME
+        # 1. DATETIME
         # ====================================================
 
-        try:
+        # Pydantic has already validated pickup_datetime
+        # and converted it into a Python datetime object.
 
-            pickup_datetime = pd.to_datetime(
-                request.pickup_datetime
-            )
-
-        except Exception:
-
-            raise HTTPException(
-                status_code=400,
-                detail=(
-                    "Invalid pickup_datetime format. "
-                    "Use: YYYY-MM-DDTHH:MM:SS "
-                    "Example: 2016-06-01T08:30:00"
-                )
-            )
+        pickup_datetime = request.pickup_datetime
 
 
         # ====================================================
@@ -308,7 +297,6 @@ def predict(request: PredictionRequest):
 
         ]
 
-
         X = features_df.drop(
             columns=[
                 column
@@ -329,7 +317,6 @@ def predict(request: PredictionRequest):
             None
         )
 
-
         if expected_features is not None:
 
             expected_features = list(
@@ -348,7 +335,6 @@ def predict(request: PredictionRequest):
                     "Missing model features: "
                     f"{missing_features}"
                 )
-
 
             # Keep exactly the same feature order
             # used when the model was trained.
@@ -372,7 +358,6 @@ def predict(request: PredictionRequest):
             )[0]
         )
 
-
         print(
             "\n[API] Feature count:",
             X.shape[1]
@@ -385,11 +370,9 @@ def predict(request: PredictionRequest):
 
         model_prediction = model.predict(X)
 
-
         raw_prediction = float(
             model_prediction[0]
         )
-
 
         print(
             "\n[API] Raw model prediction:",
@@ -429,7 +412,6 @@ def predict(request: PredictionRequest):
             raise ValueError(
                 "Model returned an invalid prediction."
             )
-
 
         if predicted_seconds < 0:
 
@@ -477,7 +459,7 @@ def predict(request: PredictionRequest):
             "input": {
 
                 "pickup_datetime":
-                    request.pickup_datetime,
+                    request.pickup_datetime.isoformat(),
 
                 "passenger_count":
                     request.passenger_count,
@@ -498,7 +480,6 @@ def predict(request: PredictionRequest):
     # ========================================================
 
     except HTTPException:
-
         raise
 
 
