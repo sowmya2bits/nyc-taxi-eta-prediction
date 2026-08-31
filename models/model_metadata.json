@@ -1,0 +1,37 @@
+{
+  "model_name": "xgboost",
+  "metrics": {
+    "rmsle": 0.3045913963445541,
+    "rmse_sec": 276.08776167534785,
+    "mae_sec": 169.45744799219256,
+    "r2": 0.8178333812834047
+  },
+  "features": {
+    "numeric": [
+      "passenger_count",
+      "pickup_longitude",
+      "pickup_latitude",
+      "dropoff_longitude",
+      "dropoff_latitude",
+      "haversine_dist",
+      "manhattan_dist",
+      "direction_bearing",
+      "jfk_pickup_dist",
+      "jfk_dropoff_dist",
+      "lga_pickup_dist",
+      "lga_dropoff_dist",
+      "pickup_hour",
+      "pickup_dayofweek",
+      "pickup_month",
+      "is_weekend",
+      "is_rush_hour",
+      "hour_sin",
+      "hour_cos"
+    ],
+    "categorical": [
+      "vendor_id",
+      "store_and_fwd_flag"
+    ]
+  },
+  "target": "log_trip_duration"
+}
